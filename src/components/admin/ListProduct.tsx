@@ -1,17 +1,46 @@
 import { useEffect, useState } from "react";
 import { IProduct } from "../../types/product";
 import { ProductService } from "../../services/product";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
+const ProductSchema = z.object({
+  name: z.string().min(2, { message: "Name must have at least 2 characters" }),
+  description: z
+    .string()
+    .min(2, { message: "Description must have at least 2 characters" }),
+  productCode: z
+    .string()
+    .min(2, { message: "Product Code must have at least 2 characters" }),
+  price: z.coerce.number().min(1, { message: "Price must be greater than 0" }),
+  image: z
+    .string()
+    .min(2, { message: "Image must have at least 2 characters" }),
+});
 const ListProduct = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [isShowModal, setIsShowModal] = useState<boolean>(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<IProduct>({ resolver: zodResolver(ProductSchema) });
 
   const handleShowModal = () => {
     setIsShowModal(true);
   };
   const handleHiddenModal = () => {
     setIsShowModal(false);
+    reset();
   };
+
+  const onSubmit = async (data: IProduct) => {
+    console.log(data);
+
+  }
 
   const handleDelete = async (id: number) => {
     const isConfirm = window.confirm("Ban co chac muon xoa khong?");
@@ -96,7 +125,7 @@ const ListProduct = () => {
             </form>
             <div className="flex items-center w-full sm:justify-end">
               <button
-              onClick={handleShowModal}
+                onClick={handleShowModal}
                 type="button"
                 data-modal-toggle="add-product-modal"
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 sm:ml-auto"
@@ -176,10 +205,13 @@ const ListProduct = () => {
       {isShowModal && (
         <>
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="w-11/12 p-6 bg-white rounded-lg shadow-lg md:w-1/2 lg:w-1/3">
+            <div className="w-11/12 p-6 bg-white rounded-lg shadow-lg md:w-1/2 ">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Thêm sản phẩm</h2>
-                <button onClick={handleHiddenModal} className="text-gray-500 hover:text-gray-700">
+                <button
+                  onClick={handleHiddenModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-6 h-6"
@@ -197,30 +229,69 @@ const ListProduct = () => {
                 </button>
               </div>
 
-              <form>
+              <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    Tên sản phẩm
+                    Name
                   </label>
                   <input
+                    {...register("name")}
                     type="text"
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Nhập tên sản phẩm"
                   />
+                  {errors.name && <span style={{ color: "red" }}>{errors.name.message}</span>}
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    Giá sản phẩm
+                    Description
                   </label>
                   <input
+                    {...register("description")}
+                    type="text"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {errors.description && (
+                    <span style={{ color: "red" }}>{errors.description.message}</span>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Product Code
+                  </label>
+                  <input
+                    {...register("productCode")}
+                    type="text"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {errors.productCode && (
+                    <span style={{ color: "red" }}>{errors.productCode.message}</span>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    price
+                  </label>
+                  <input
+                    {...register("price")}
                     type="number"
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Nhập giá sản phẩm"
                   />
+                  {errors.price && <span style={{ color: "red" }}>{errors.price.message}</span>}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Image
+                  </label>
+                  <input
+                    {...register("image")}
+                    type="text"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {errors.image && <span style={{ color: "red" }}>{errors.image.message}</span>}
                 </div>
                 <div className="flex justify-end">
                   <button
-                  onClick={handleHiddenModal}
+                    onClick={handleHiddenModal}
                     type="button"
                     className="px-4 py-2 mr-2 font-bold text-white bg-gray-500 rounded-lg hover:bg-gray-700"
                   >

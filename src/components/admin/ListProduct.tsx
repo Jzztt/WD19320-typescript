@@ -13,7 +13,7 @@ const ProductSchema = z.object({
   productCode: z
     .string()
     .min(2, { message: "Product Code must have at least 2 characters" }),
-  price: z.coerce.number().min(1, { message: "Price must be greater than 0" }),
+  price: z.number().min(1, { message: "Price must be greater than 0" }),
   image: z
     .string()
     .min(2, { message: "Image must have at least 2 characters" }),
@@ -21,26 +21,60 @@ const ProductSchema = z.object({
 const ListProduct = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [isShowModal, setIsShowModal] = useState<boolean>(false);
+  const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<IProduct>({ resolver: zodResolver(ProductSchema) });
 
-  const handleShowModal = () => {
+  const handleShowModal = (product?: IProduct) => {
     setIsShowModal(true);
+    if (!product) {
+      setSelectedProduct(null);
+      return;
+    }
+    setSelectedProduct(product);
+    setValue("name", product.name);
+    setValue("description", product.description);
+    setValue("productCode", product.productCode);
+    setValue("price", product.price);
+    setValue("image", product.image);
   };
+
   const handleHiddenModal = () => {
     setIsShowModal(false);
     reset();
   };
 
   const onSubmit = async (data: IProduct) => {
-    console.log(data);
-
-  }
+    if (selectedProduct) {
+      const updateProductResponse = await ProductService.updateProduct(
+        selectedProduct.id,
+        data
+      );
+      if (!updateProductResponse) return;
+      // fetchProduct();
+      setProducts(
+        products.map((product) =>
+          product.id === updateProductResponse.id
+            ? updateProductResponse
+            : product
+        )
+      );
+    } else {
+      const addProductResponse = await ProductService.addProduct(data);
+      if (!addProductResponse) {
+        return;
+      }
+      // fetchProduct();
+      setProducts([...products, addProductResponse]);
+    }
+    handleHiddenModal();
+  };
 
   const handleDelete = async (id: number) => {
     const isConfirm = window.confirm("Ban co chac muon xoa khong?");
@@ -125,7 +159,7 @@ const ListProduct = () => {
             </form>
             <div className="flex items-center w-full sm:justify-end">
               <button
-                onClick={handleShowModal}
+                onClick={() => handleShowModal()}
                 type="button"
                 data-modal-toggle="add-product-modal"
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-cyan-600 hover:bg-cyan-700 focus:ring-4 focus:ring-cyan-200 sm:ml-auto"
@@ -183,7 +217,10 @@ const ListProduct = () => {
                     <td className="px-6 py-4">{product.productCode}</td>
                     <td className="px-6 py-4">{product.price}</td>
                     <td>
-                      <button className="inline-flex items-center px-4 py-2 font-bold text-white transition duration-300 ease-in-out transform bg-blue-500 rounded-lg hover:bg-blue-700 hover:scale-105">
+                      <button
+                        onClick={() => handleShowModal(product)}
+                        className="inline-flex items-center px-4 py-2 font-bold text-white transition duration-300 ease-in-out transform bg-blue-500 rounded-lg hover:bg-blue-700 hover:scale-105"
+                      >
                         Edit
                       </button>
                       <button
@@ -207,7 +244,10 @@ const ListProduct = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="w-11/12 p-6 bg-white rounded-lg shadow-lg md:w-1/2 ">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Thêm sản phẩm</h2>
+                <h2 className="text-xl font-bold">
+                  {selectedProduct && selectedProduct.id ? "Edit" : "Add"} sản
+                  phẩm
+                </h2>
                 <button
                   onClick={handleHiddenModal}
                   className="text-gray-500 hover:text-gray-700"
@@ -239,7 +279,9 @@ const ListProduct = () => {
                     type="text"
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  {errors.name && <span style={{ color: "red" }}>{errors.name.message}</span>}
+                  {errors.name && (
+                    <span className="text-red-500">{errors.name.message}</span>
+                  )}
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
@@ -251,7 +293,9 @@ const ListProduct = () => {
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                   {errors.description && (
-                    <span style={{ color: "red" }}>{errors.description.message}</span>
+                    <span style={{ color: "red" }}>
+                      {errors.description.message}
+                    </span>
                   )}
                 </div>
                 <div className="mb-4">
@@ -264,7 +308,9 @@ const ListProduct = () => {
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                   {errors.productCode && (
-                    <span style={{ color: "red" }}>{errors.productCode.message}</span>
+                    <span style={{ color: "red" }}>
+                      {errors.productCode.message}
+                    </span>
                   )}
                 </div>
                 <div className="mb-4">
@@ -272,11 +318,13 @@ const ListProduct = () => {
                     price
                   </label>
                   <input
-                    {...register("price")}
+                    {...register("price", { valueAsNumber: true })}
                     type="number"
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  {errors.price && <span style={{ color: "red" }}>{errors.price.message}</span>}
+                  {errors.price && (
+                    <span style={{ color: "red" }}>{errors.price.message}</span>
+                  )}
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
@@ -287,7 +335,9 @@ const ListProduct = () => {
                     type="text"
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
-                  {errors.image && <span style={{ color: "red" }}>{errors.image.message}</span>}
+                  {errors.image && (
+                    <span style={{ color: "red" }}>{errors.image.message}</span>
+                  )}
                 </div>
                 <div className="flex justify-end">
                   <button

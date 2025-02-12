@@ -7,6 +7,22 @@
       "productCode": "Samsung-1",
       "price": 1000,
       "image": "https://flowbite.com/docs/images/blog/image-1.jpg"
+    },
+    {
+      "name": "Sam sung1",
+      "description": "Sam sung",
+      "productCode": "Sam sung",
+      "price": 1111,
+      "image": "https://www.simplilearn.com/ice9/free_resources_article_thumb/what_is_image_Processing.jpg",
+      "id": 2
+    },
+    {
+      "name": "nokia",
+      "description": "nokia",
+      "productCode": "nokia",
+      "price": 100,
+      "image": "https://www.simplilearn.com/ice9/free_resources_article_thumb/what_is_image_Processing.jpg",
+      "id": 3
     }
   ]
 }

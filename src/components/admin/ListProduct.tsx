@@ -4,6 +4,7 @@ import { ProductService } from "../../services/product";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import toast from "react-hot-toast";
 
 const ProductSchema = z.object({
   name: z.string().min(2, { message: "Name must have at least 2 characters" }),
@@ -70,6 +71,7 @@ const ListProduct = () => {
       if (!addProductResponse) {
         return;
       }
+      toast.success('Add Product successfully');
       // fetchProduct();
       setProducts([...products, addProductResponse]);
     }

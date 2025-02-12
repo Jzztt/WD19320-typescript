@@ -2,6 +2,7 @@ import React from "react";
 import SideBar from "../components/SideBar";
 import Header from "../components/Header";
 import { Outlet } from "react-router";
+import { Toaster } from "react-hot-toast";
 
 const AdminLayout = () => {
   return (
@@ -20,6 +21,9 @@ const AdminLayout = () => {
         >
           <Outlet />
         </div>
+      </div>
+      <div>
+        <Toaster />
       </div>
     </div>
   );
